@@ -42,7 +42,9 @@ cmake_minimum_required(VERSION 2.8.8)
 project(GECODE)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+set(BUILD_SHARED_LIBS ON)
 
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(CheckCXXCompilerFlag)
 if (GECODE_DISABLE_WARNINGS)
   if (MSVC)
@@ -373,8 +375,14 @@ foreach (lib support kernel search int set float
     add_library(gecode${lib} ${sources} ${${libupper}HDR})
     target_include_directories(gecode${lib}
       PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+    install(TARGETS gecode${lib} DESTINATION lib)
   endif ()
 endforeach ()
+
+find_package(MPFR REQUIRED)
+include_directories(${MPFR_INCLUDES})
+
+add_definitions(-DGECODE_HAS_MPFR)
 
 find_package(Threads)
 target_link_libraries(gecodesupport ${CMAKE_THREAD_LIBS_INIT})
@@ -382,7 +390,7 @@ target_link_libraries(gecodekernel gecodesupport)
 target_link_libraries(gecodesearch gecodekernel)
 target_link_libraries(gecodeint gecodekernel)
 target_link_libraries(gecodeset gecodeint)
-target_link_libraries(gecodefloat gecodeint)
+target_link_libraries(gecodefloat gecodeint mpfr gmp)
 target_link_libraries(gecodeminimodel gecodeint gecodeset gecodesearch)
 target_link_libraries(gecodedriver gecodeint)
 target_link_libraries(gecodeflatzinc gecodeminimodel gecodedriver)
@@ -398,12 +406,12 @@ if (GECODE_HAS_QT)
 endif ()
 
 if (FLOATSRC)
-  target_link_libraries(gecodefloat gecodekernel)
+  target_link_libraries(gecodefloat gecodekernel mpfr gmp)
   target_link_libraries(gecodeminimodel gecodefloat)
 endif ()
 
 add_executable(gecode-test ${TESTSRC} ${TESTHDR})
-target_link_libraries(gecode-test gecodeflatzinc gecodeminimodel)
+target_link_libraries(gecode-test gecodeflatzinc gecodeminimodel gecodegist gecodefloat mpfr gmp)
 
 add_executable(fzn-gecode ${FLATZINCEXESRC})
 target_link_libraries(fzn-gecode gecodeflatzinc gecodegist gecodeminimodel gecodedriver)
@@ -423,3 +431,20 @@ add_test(test gecode-test
   -test Int::Arithmetic::Mult::XYZ::Bnd::C
   -test Int::Arithmetic::Mult::XYZ::Dom::A
   -test Search::BAB::Sol::BalGr::Binary::Binary::Binary::1::1)
+
+INSTALL (
+    DIRECTORY ${CMAKE_SOURCE_DIR}/gecode/
+    DESTINATION include/gecode
+    FILES_MATCHING PATTERN "*.h*")
+
+
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_NAME "zoomer-gecode")
+set(CPACK_DEBIAN_PACKAGE_VERSION 5.0.0)
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "devops@zoomer.io")
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "gecode library")
+set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_DEBIAN_PACKAGE_NAME}-${CPACK_DEBIAN_PACKAGE_VERSION}")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CORE_DEPENDS}")
+include(CPack)
