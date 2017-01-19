@@ -365,8 +365,7 @@ foreach (lib support kernel search int set float
   if (${libupper}SRC)
     set(sources )
     foreach (src ${${libupper}SRC} ${${libupper}_GENSRC})
-      if ((src STREQUAL "gecode/support/thread/pthreads.cpp" AND MSVC) OR
-           src STREQUAL "gecode/float/rounding.cpp")
+      if (src STREQUAL "gecode/support/thread/pthreads.cpp" AND MSVC) 
         # ignore empty source files to prevent linker warnings
       else ()
         set(sources ${sources} ${src})
@@ -395,6 +394,8 @@ target_link_libraries(gecodeminimodel gecodeint gecodeset gecodesearch)
 target_link_libraries(gecodedriver gecodeint)
 target_link_libraries(gecodeflatzinc gecodeminimodel gecodedriver)
 
+LINK_DIRECTORIES(${CMAKE_BINARY_DIR})
+
 if (GECODE_HAS_QT)
   if (Qt5_FOUND)
     qt5_use_modules(gecodegist Widgets Gui PrintSupport)
@@ -410,7 +411,7 @@ if (FLOATSRC)
   target_link_libraries(gecodeminimodel gecodefloat)
 endif ()
 
-add_executable(gecode-test ${TESTSRC} ${TESTHDR})
+add_executable(gecode-test ${TESTSRC} ${TESTHDR} ${FLOATHDR})
 target_link_libraries(gecode-test gecodeflatzinc gecodeminimodel gecodegist gecodefloat mpfr gmp)
 
 add_executable(fzn-gecode ${FLATZINCEXESRC})
@@ -432,14 +433,10 @@ add_test(test gecode-test
   -test Int::Arithmetic::Mult::XYZ::Dom::A
   -test Search::BAB::Sol::BalGr::Binary::Binary::Binary::1::1)
 
-INSTALL (
-    DIRECTORY ${CMAKE_SOURCE_DIR}/gecode/
-    DESTINATION include/gecode
-    FILES_MATCHING PATTERN "*.h*")
-
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/gecode/ DESTINATION include/gecode FILES_MATCHING PATTERN "*.h*")
 
 set(CPACK_GENERATOR "DEB")
-set(CPACK_DEBIAN_PACKAGE_NAME "zoomer-gecode")
+set(CPACK_DEBIAN_PACKAGE_NAME "gecode")
 set(CPACK_DEBIAN_PACKAGE_VERSION 5.0.0)
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "devops@zoomer.io")
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
