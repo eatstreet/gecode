@@ -1,0 +1,22 @@
+---
+
+- name: gecode
+  hosts: localhost
+  vars:
+    gecode_build_dependencies:
+      - cmake
+      - libgmp-dev
+      - libmpfr-dev
+  tasks:
+    - name: execute apt-get update
+      apt:
+        update_cache: yes
+    - name: remove old gecode
+      apt:
+        name: libgecode-dev
+        state: absent
+    - name: install build dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items: "{{ gecode_build_dependencies }}"

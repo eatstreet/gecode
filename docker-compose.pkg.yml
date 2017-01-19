@@ -1,0 +1,5 @@
+---
+
+gecode:
+  volumes:
+    - /tmp:/tmp

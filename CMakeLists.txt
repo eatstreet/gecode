@@ -372,6 +372,7 @@ foreach (lib support kernel search int set float
       endif ()
     endforeach ()
     add_library(gecode${lib} ${sources} ${${libupper}HDR})
+	set_target_properties(gecode${lib} PROPERTIES VERSION 43.0 SOVERSION 43)
     target_include_directories(gecode${lib}
       PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
     install(TARGETS gecode${lib} DESTINATION lib)
@@ -411,11 +412,12 @@ if (FLOATSRC)
   target_link_libraries(gecodeminimodel gecodefloat)
 endif ()
 
-add_executable(gecode-test ${TESTSRC} ${TESTHDR} ${FLOATHDR})
-target_link_libraries(gecode-test gecodeflatzinc gecodeminimodel gecodegist gecodefloat mpfr gmp)
-
-add_executable(fzn-gecode ${FLATZINCEXESRC})
-target_link_libraries(fzn-gecode gecodeflatzinc gecodegist gecodeminimodel gecodedriver)
+if (GECODE_HAS_QT)
+  add_executable(gecode-test ${TESTSRC} ${TESTHDR} ${FLOATHDR})
+  target_link_libraries(gecode-test gecodeflatzinc gecodeminimodel gecodegist gecodefloat mpfr gmp)
+  add_executable(fzn-gecode ${FLATZINCEXESRC})
+  target_link_libraries(fzn-gecode gecodeflatzinc gecodegist gecodeminimodel gecodedriver)
+endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
