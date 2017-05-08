@@ -1,4 +1,4 @@
-FROM quay.io/zoomer/baseimage:0b2d4535
+FROM quay.io/zoomer/baseimage:production
 MAINTAINER devops@zoomer.io
 
 COPY ansible/ /app/ansible/
