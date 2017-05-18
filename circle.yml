@@ -9,12 +9,11 @@ machine:
 
 dependencies:
   post:
-    - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS $DOCKER_REPO
+    - docker login -u $DOCKER_USER -p $DOCKER_PASS $DOCKER_REPO
     # No staging releases at the moment of doing this.
     #
     - docker pull quay.io/zoomer/baseimage:production
     - docker tag quay.io/zoomer/baseimage:production quay.io/zoomer/baseimage:latest
-    - docker pull quay.io/zoomer/gecode:production || true
     - git log -1 >COMMIT.txt
     - git rev-parse HEAD >VERSION.txt
     - docker-compose build:
@@ -24,9 +23,5 @@ deployment:
   production:
     branch: master
     commands:
-      - docker tag gecode_gecode quay.io/zoomer/gecode:${CIRCLE_SHA1:0:8}
-      - docker tag -f quay.io/zoomer/gecode:${CIRCLE_SHA1:0:8} quay.io/zoomer/gecode:production
-      - docker push quay.io/zoomer/gecode:${CIRCLE_SHA1:0:8}
-      - docker push quay.io/zoomer/gecode:production
       - docker-compose -f docker-compose.yml -f docker-compose.pkg.yml run gecode -- cpack -B /tmp
       - curl -F package=@/tmp/gecode.deb https://${GEMFURY_TOKEN}@push.fury.io/zoomer/
